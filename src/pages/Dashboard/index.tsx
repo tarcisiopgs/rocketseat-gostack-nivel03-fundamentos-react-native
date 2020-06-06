@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-
+import { AxiosResponse } from 'axios';
 import { View, Image } from 'react-native';
 
 import formatValue from '../../utils/formatValue';
@@ -29,21 +29,30 @@ interface Product {
 }
 
 const Dashboard: React.FC = () => {
-  const { addToCart } = useCart();
-
+  const { increment, addToCart, products: productsInCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
 
+  const handleAddToCart = useCallback(
+    (item: Product): void => {
+      const exists = productsInCart.find(({ id }) => id === item.id);
+
+      if (exists) {
+        increment(item.id);
+      } else {
+        addToCart(item);
+      }
+    },
+    [addToCart, productsInCart, increment],
+  );
+
   useEffect(() => {
-    async function loadProducts(): Promise<void> {
-      // TODO
-    }
+    const loadProducts = async (): Promise<void> => {
+      const response: AxiosResponse = await api.get('products');
+      setProducts(response.data);
+    };
 
     loadProducts();
   }, []);
-
-  function handleAddToCart(item: Product): void {
-    // TODO
-  }
 
   return (
     <Container>
